@@ -15,7 +15,7 @@ build.setSelfTracking();
 module.exports = build;
 
 // Directories
-const PREFIX = `sarasa`;
+const PREFIX = `terminal-2020`;
 const BUILD = `build`;
 const OUT = `out`;
 
@@ -56,7 +56,7 @@ const Version = oracle("version", async t => {
 });
 
 const TTCArchive = file.make(
-	version => `${OUT}/sarasa-gothic-ttc-${version}.7z`,
+	version => `${OUT}/terminal-2020-ttc-${version}.7z`,
 	async (t, target) => {
 		await t.need(TtcFontFiles);
 		await rm(target.full);
@@ -64,7 +64,7 @@ const TTCArchive = file.make(
 	}
 );
 const TTFArchive = file.make(
-	version => `${OUT}/sarasa-gothic-ttf-${version}.7z`,
+	version => `${OUT}/terminal-2020-ttf-${version}.7z`,
 	async (t, target) => {
 		const [config] = await t.need(Config, de`${OUT}/ttf`);
 		await t.need(TtfFontFiles);
