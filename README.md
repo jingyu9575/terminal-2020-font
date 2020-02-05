@@ -1,4 +1,10 @@
-# Sarasa Gothic (更纱黑体 / 更紗黑體 / 更紗ゴシック / 사라사고딕)
+# Terminal 2020
+
+Hybrid font of Cascadia Code and Source Han Sans. This is a fork of *Sarasa Gothic* by be5invis.
+
+---
+
+# Original README of Sarasa Gothic (更纱黑体 / 更紗黑體 / 更紗ゴシック / 사라사고딕)
 
 This is SARASA GOTHIC, a CJK programming font based on Iosevka and Source Han Sans.
 
