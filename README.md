@@ -1,4 +1,4 @@
-# Terminal 2020
+# Terminal 2020 Font
 
 Hybrid font of Cascadia Code and Source Han Sans. This is a fork of *Sarasa Gothic* by be5invis.
 
