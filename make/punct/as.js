@@ -1,6 +1,6 @@
 "use strict";
 
-const { introduce, build, gc, manip } = require("megaminx");
+const { introduce, build, manip } = require("megaminx");
 const {
 	isIdeograph,
 	isWestern,
@@ -13,8 +13,9 @@ const {
 	removeUnusedFeatures,
 	toPWID,
 	removeDashCcmp,
-	buildNexusDash
+	aliasFeatMap
 } = require("./common");
+const gc = require("../common/gc");
 
 module.exports = async function makeFont(ctx, config, argv) {
 	const a = await ctx.run(introduce, "a", {
@@ -38,10 +39,10 @@ module.exports = async function makeFont(ctx, config, argv) {
 	if (argv.mono) {
 		await ctx.run(manip.glyph, "a", sanitizeSymbols, argv.type);
 		removeDashCcmp(ctx.items.a, argv.mono);
-		await ctx.run(manip.glyph, "a", buildNexusDash);
 	}
 	removeUnusedFeatures(ctx.items.a, argv.mono);
-	await ctx.run(gc, "a", { ignoreAltSub: true });
+	aliasFeatMap(ctx.items.a, "vert", [[0x2014, 0x2015]]);
+	gc(ctx.items.a);
 
 	await ctx.run(build, "a", { to: argv.o, optimize: true });
 	ctx.remove("a");

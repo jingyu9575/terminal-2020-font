@@ -1,9 +1,13 @@
 "use strict";
 
-const { rebase, introduce, build, gc, merge } = require("megaminx");
+const { rebase, introduce, build, merge, manip } = require("megaminx");
 
-const italize = require("../common/italize");
+const { italize } = require("../common/italize");
 const { nameFont, setHintFlag } = require("./metadata.js");
+const { crossTransfer } = require("./cross-transfer");
+const { knockoutSymbols } = require("./knockout-symbols");
+const { buildNexusDash } = require("./nexus-dash");
+const gc = require("../common/gc");
 
 const fs = require("fs-extra");
 const path = require("path");
@@ -38,11 +42,28 @@ async function pass(ctx, config, argv) {
 	}
 
 	// italize
-	if (argv.italize) italize(b, 10);
+	if (argv.italize) {
+		italize(a, -10);
+		italize(c, -10);
+	}
+
+	knockoutSymbols(a, { enclosedAlphaNumerics: !argv.mono, pua: !argv.mono });
+
+	crossTransfer(ctx.items.a, ctx.items.b, [
+		0x2010,
+		0x2011,
+		0x2012,
+		0x2013,
+		0x2014,
+		0x2015,
+		0x2e3a,
+		0x2e3b
+	]);
 
 	// merge and build
 	await ctx.run(merge.below, "a", "a", "c", { mergeOTL: true });
 	await ctx.run(merge.above, "a", "a", "b", { mergeOTL: true });
+	await ctx.run(manip.glyph, "a", buildNexusDash);
 
 	await ctx.run(setHintFlag, "a");
 	await ctx.run(
@@ -76,8 +97,9 @@ async function pass(ctx, config, argv) {
 		}
 	);
 
-	await ctx.run(gc, "a");
-	await ctx.run(build, "a", { to: config.o, optimize: true });
+	if (argv.italize) italize(a, +10);
+	ctx.items.a.glyph_order = gc(ctx.items.a);
+	await ctx.run(build, "a", { to: config.o });
 }
 
 module.exports = async function makeFont(ctx, config, argv) {

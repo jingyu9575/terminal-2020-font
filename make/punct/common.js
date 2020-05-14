@@ -13,7 +13,7 @@ function deleteGPOS(font, gid) {
 }
 
 const sanitizers = {};
-sanitizers.auto = function(glyph) {
+sanitizers.auto = function (glyph) {
 	const targetW = Math.min(
 		this.em,
 		Math.ceil(glyph.advanceWidth / (this.em / 2)) * (this.em / 2)
@@ -24,7 +24,7 @@ sanitizers.auto = function(glyph) {
 	glyph.advanceWidth = targetW;
 	return glyph;
 };
-sanitizers.half = function(glyph) {
+sanitizers.half = function (glyph) {
 	const targetW = this.em / 2;
 	const shift = (targetW - glyph.advanceWidth) / 2;
 	if (!glyph.contours) return glyph;
@@ -32,13 +32,13 @@ sanitizers.half = function(glyph) {
 	glyph.advanceWidth = targetW;
 	return glyph;
 };
-sanitizers.halfLeft = function(glyph, gid) {
+sanitizers.halfLeft = function (glyph, gid) {
 	const g1 = sanitizers.half.call(this, this.find.glyph$(this.find.gname.subst("pwid", gid)));
 	Object.assign(glyph, g1);
 	deleteGPOS(this.font, gid);
 	return glyph;
 };
-sanitizers.halfRight = function(glyph, gid) {
+sanitizers.halfRight = function (glyph, gid) {
 	const g1 = sanitizers.half.call(this, this.find.glyph$(this.find.gname.subst("pwid", gid)));
 	Object.assign(glyph, g1);
 	deleteGPOS(this.font, gid);
@@ -46,7 +46,7 @@ sanitizers.halfRight = function(glyph, gid) {
 };
 
 function HalfCompN(n, forceFullWidth, forceHalfWidth) {
-	return function(glyph, gid, isType = false) {
+	return function (glyph, gid, isType = false) {
 		const g1 = this.find.glyph$(this.find.gname.subst("fwid", gid));
 		Object.assign(glyph, g1);
 		const targetW = Math.min(
@@ -98,70 +98,6 @@ exports.sanitizeSymbols = async function sanitizeSymbols(isType) {
 	}
 };
 
-exports.buildNexusDash = async function() {
-	let gidCovered = new Set();
-	for (const u of [0x2013, 0x2014, 0x2015]) {
-		const gn = this.find.gname.unicode(u);
-		if (gn) gidCovered.add(gn);
-	}
-
-	const nexusLookupName = "ccmp__nexusDash";
-	let nexusLookupSubst = {};
-	const nexusLookup = { type: "gsub_single", subtables: [nexusLookupSubst] };
-	const nexusChainingLookupName = "ccmp__nexusDash_chaining";
-	let nexusChainingRules = [];
-	const nexusChainingLookup = { type: "gsub_chaining", subtables: nexusChainingRules };
-
-	for (const originalGid of gidCovered) {
-		const glyph = createNexusGlyph(this.find.glyph$(originalGid));
-		const nexusGid = originalGid + ".nexus";
-		await this.save.to(nexusGid, null, glyph);
-		nexusLookupSubst[originalGid] = nexusGid;
-		nexusChainingRules.push({
-			match: [[originalGid, nexusGid], [originalGid]],
-			apply: [{ lookup: nexusLookupName, at: 1 }],
-			inputBegins: 1,
-			inputEnds: 2
-		});
-	}
-
-	if (this.font.GSUB) {
-		this.font.GSUB.lookups[nexusLookupName] = nexusLookup;
-		this.font.GSUB.lookups[nexusChainingLookupName] = nexusChainingLookup;
-
-		for (const fid in this.font.GSUB.features) {
-			if (fid.slice(0, 4) !== "ccmp") continue;
-			const feature = this.font.GSUB.features[fid];
-			if (!feature) continue;
-			feature.push(nexusChainingLookupName);
-		}
-	}
-};
-
-function createNexusGlyph(glyph) {
-	let xMax = -0xffff,
-		xMin = 0xffff;
-	if (glyph.contours) {
-		for (let c of glyph.contours) {
-			for (let z of c) {
-				if (z.x > xMax) xMax = z.x;
-				if (z.x < xMin) xMin = z.x;
-			}
-		}
-	}
-	const rsb = glyph.advanceWidth - xMax;
-	const negMin = rsb * 1.5;
-	const scaling = (xMax + rsb * 1.5) / (xMax - xMin);
-	if (glyph.contours) {
-		for (let c of glyph.contours) {
-			for (let z of c) {
-				z.x = (z.x - xMin) * scaling - negMin;
-			}
-		}
-	}
-	return glyph;
-}
-
 function removeUnusedFeature(table, tag) {
 	if (!table) return;
 	for (let f in table.features) {
@@ -171,7 +107,8 @@ function removeUnusedFeature(table, tag) {
 	}
 }
 
-exports.removeUnusedFeatures = function(a, mono) {
+exports.removeUnusedFeatures = function (a, mono) {
+	removeUnusedFeature(a.GSUB, "aalt");
 	removeUnusedFeature(a.GSUB, "pwid");
 	removeUnusedFeature(a.GSUB, "fwid");
 	removeUnusedFeature(a.GSUB, "hwid");
@@ -179,7 +116,6 @@ exports.removeUnusedFeatures = function(a, mono) {
 	removeUnusedFeature(a.GSUB, "qwid");
 
 	if (mono) {
-		removeUnusedFeature(a.GSUB, "aalt");
 		removeUnusedFeature(a.GSUB, "locl");
 		removeUnusedFeature(a.GPOS, "kern");
 		removeUnusedFeature(a.GPOS, "vkrn");
@@ -188,7 +124,7 @@ exports.removeUnusedFeatures = function(a, mono) {
 	}
 };
 
-exports.removeDashCcmp = function(a, mono) {
+exports.removeDashCcmp = function (a) {
 	if (!a.GSUB || !a.GSUB.features || !a.GSUB.lookups) return;
 
 	let affectedLookups = new Set();
@@ -220,11 +156,37 @@ function removeDashCcmpLookup(lookup, cmap) {
 	}
 }
 
-exports.toPWID = async function() {
+exports.toPWID = async function () {
 	const font = this.font;
 	for (let c in font.cmap) {
 		if (!font.cmap[c]) continue;
 		if (!sanitizerTypes[String.fromCodePoint(c - 0)]) continue;
 		font.cmap[c] = this.find.gname.subst("pwid", font.cmap[c]);
+	}
+};
+
+exports.aliasFeatMap = function (a, feat, aliases) {
+	if (!a.GSUB || !a.GSUB.features || !a.GSUB.lookups) return;
+	for (const [uFrom, uTo] of aliases) {
+		const gidFrom = a.cmap[uFrom],
+			gidTo = a.cmap[uTo];
+		if (!gidFrom || !gidTo) continue;
+
+		let affectedLookups = new Set();
+		for (const fid in a.GSUB.features) {
+			if (fid.slice(0, 4) === feat) {
+				const feature = a.GSUB.features[fid];
+				if (!feature) continue;
+				for (const lid of feature) affectedLookups.add(lid);
+			}
+		}
+
+		for (const lid of affectedLookups) {
+			const lookup = a.GSUB.lookups[lid];
+			if (lookup.type !== "gsub_single") continue;
+			for (const subtable of lookup.subtables) {
+				subtable[gidFrom] = subtable[gidTo];
+			}
+		}
 	}
 };

@@ -37,13 +37,17 @@ Please note that you will need *a lot of* memory to create TTCs, due to the huge
 ## What are the names?
 
 - Style dimension
-  - Latin/Greek/Cyrillic character set being Noto Sans
+  - Latin/Greek/Cyrillic character set being Inter
     - Quotes (`“”`) are full width —— Gothic
     - Quotes (`“”`) are narrow —— UI
   - Latin/Greek/Cyrillic character set being Iosevka
-    - Have ligature, Em dashes (`——`) are full width —— MonoT
-    - Have ligature, Em dashes (`——`) are half width —— Mono
-    - No ligature, Em dashes (`——`) are half width —— Term
+    - Have ligature, Em dashes (`——`) are full width —— Mono
+    - Have ligature, Em dashes (`——`) are half width —— Term
+    - No ligature, Em dashes (`——`) are half width —— Fixed
 - Orthography dimension
   - `CL`: Classical orthography
   - `SC`, `TC`, `J`, `K`, `HC`: Regional orthography, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations.
+
+## Mirrors
+
+- TUNA (CN): https://mirrors.tuna.tsinghua.edu.cn/github-release/be5invis/Sarasa-Gothic
